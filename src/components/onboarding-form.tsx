@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import type { MoveProfile } from "@/lib/move-profile";
 
 type Language = "en" | "ja";
 type MoveType = "sameMunicipality" | "betweenMunicipalities" | "leavingTemporary" | "leavingPermanent";
@@ -21,7 +22,7 @@ const copy = {
     notes: "Anything else we should know? (optional)",
     notesHint: "For example: employer-provided housing, a vehicle, or a child starting school.",
     submit: "Create my checklist",
-    submitted: "Your details are ready. Checklist generation will be added next.",
+    submitted: "Your personalised checklist is ready below.",
     options: {
       select: "Select an option",
       sameMunicipality: "Within the same city, ward, or municipality",
@@ -48,7 +49,7 @@ const copy = {
     notes: "ほかに伝えておきたいこと（任意）",
     notesHint: "例：社宅、車の所有、お子さまの転校予定など。",
     submit: "チェックリストを作る",
-    submitted: "入力内容を受け取りました。チェックリストの生成は次の機能で追加します。",
+    submitted: "あなた専用のチェックリストを下に作成しました。",
     options: {
       select: "選択してください",
       sameMunicipality: "同じ市区町村内での引っ越し",
@@ -62,7 +63,7 @@ const copy = {
   },
 } as const;
 
-export function OnboardingForm({ language }: { language: Language }) {
+export function OnboardingForm({ language, onGenerate }: { language: Language; onGenerate: (profile: MoveProfile) => void }) {
   const [moveType, setMoveType] = useState<MoveType | "">("");
   const [submitted, setSubmitted] = useState(false);
   const text = copy[language];
@@ -70,6 +71,17 @@ export function OnboardingForm({ language }: { language: Language }) {
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    onGenerate({
+      scenario: moveType as MoveType,
+      moveDate: String(data.get("moveDate")),
+      currentMunicipality: String(data.get("currentMunicipality")),
+      destination: String(data.get("destination")),
+      visaStatus: String(data.get("visaStatus")),
+      householdSize: Number(data.get("householdSize")),
+      hasPets: data.get("pets") === "yes",
+      notes: String(data.get("notes") ?? ""),
+    });
     setSubmitted(true);
   }
 

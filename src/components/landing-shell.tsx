@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { OnboardingForm } from "@/components/onboarding-form";
+import { Checklist } from "@/components/checklist";
+import type { MoveProfile } from "@/lib/move-profile";
 
 type Language = "en" | "ja";
 
@@ -52,6 +54,7 @@ const copy = {
 
 export function LandingShell() {
   const [language, setLanguage] = useState<Language>("en");
+  const [profile, setProfile] = useState<MoveProfile | null>(null);
   const text = copy[language];
 
   return (
@@ -107,7 +110,8 @@ export function LandingShell() {
         </div>
       </section>
 
-      <OnboardingForm language={language} />
+      <OnboardingForm language={language} onGenerate={setProfile} />
+      {profile && <Checklist language={language} profile={profile} />}
 
       <footer>{text.sourceNote}</footer>
     </main>
