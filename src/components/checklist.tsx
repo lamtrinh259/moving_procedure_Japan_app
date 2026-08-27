@@ -32,11 +32,6 @@ function scheduleLabel(item: Procedure, profile: MoveProfile, language: Language
     case "before14": return language === "ja" ? `${date(-14)}頃までに` : `By around ${date(-14)}`;
     case "onMoveDate": return language === "ja" ? `予定日：${date(0)}` : `Planned date: ${date(0)}`;
     case "after14": return language === "ja" ? `期限：${date(14)}` : `Due by ${date(14)}`;
-    case "after2Years": {
-      const deadline = new Date(`${profile.moveDate}T12:00:00`);
-      deadline.setFullYear(deadline.getFullYear() + 2);
-      return language === "ja" ? `確認期限：${formatter.format(deadline)}` : `Check deadline: ${formatter.format(deadline)}`;
-    }
     default: return language === "ja" ? `${dateLabel(profile.moveDate, language)}までに確認` : `Confirm before ${dateLabel(profile.moveDate, language)}`;
   }
 }

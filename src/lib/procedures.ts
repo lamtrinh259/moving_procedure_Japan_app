@@ -10,7 +10,7 @@ export type ProcedureCategory =
   | "household";
 
 type LocalizedText = { en: string; ja: string };
-type ScheduleRule = "before90" | "before60" | "before30" | "before14" | "onMoveDate" | "after14" | "after2Years";
+type ScheduleRule = "before90" | "before60" | "before30" | "before14" | "onMoveDate" | "after14";
 
 export type Procedure = {
   id: string;
@@ -24,7 +24,7 @@ export type Procedure = {
   source: { label: string; url: string };
   municipalityConfirmationRequired?: boolean;
   schedule?: ScheduleRule;
-  requires?: { hasPets?: boolean; minHouseholdSize?: number; visaStatuses?: string[] };
+  requires?: { hasPets?: boolean; hasChildren?: boolean; hasVehicle?: boolean; visaStatuses?: string[]; excludeVisaStatuses?: string[] };
 };
 
 /**
@@ -41,7 +41,6 @@ export const procedures: Procedure[] = [
     timing: { en: "Ask your current municipality about its filing window before your move.", ja: "転出前に、現在の市区町村へ届出可能な期間を確認してください。" },
     action: { en: "Notify your current municipal office that you are leaving the address.", ja: "現在住んでいる市区町村に、住所を離れることを届け出ます。" },
     important: true,
-    schedule: "before14",
     source: { label: "Immigration Services Agency: address-change notification", url: "https://www.moj.go.jp/isa/applications/procedures/nyuukokukanri10_00023.html" },
     municipalityConfirmationRequired: true,
   },
@@ -92,6 +91,7 @@ export const procedures: Procedure[] = [
     action: { en: "Check whether deemed re-entry applies or whether you need to apply for a re-entry permit before leaving Japan.", ja: "みなし再入国許可が使えるか、または事前に再入国許可の申請が必要かを確認します。" },
     important: true,
     schedule: "before90",
+    requires: { excludeVisaStatuses: ["Permanent Resident", "永住者"] },
     source: { label: "Immigration Services Agency: immigration and residence Q&A", url: "https://www.moj.go.jp/isa/applications/guide/kanri_qa.html" },
   },
   {
@@ -115,7 +115,7 @@ export const procedures: Procedure[] = [
     timing: { en: "Before departure; some post-departure applications have a two-year deadline.", ja: "出国前に確認。出国後の申請には2年の期限があるものがあります。" },
     action: { en: "Check your coverage, voluntary-contribution options, and possible lump-sum withdrawal eligibility.", ja: "加入状況、任意加入、脱退一時金の対象条件を確認します。" },
     source: { label: "Japan Pension Service: Lump-sum Withdrawal Payments", url: "https://www.nenkin.go.jp/international/english/japanese-system/benefit/payment.html" },
-    schedule: "after2Years",
+    schedule: "before30",
   },
   {
     id: "tax-representative",
@@ -161,7 +161,7 @@ export const procedures: Procedure[] = [
     source: { label: "Japan Moving Procedures Reference", url: "#school-confirmation" },
     municipalityConfirmationRequired: true,
     schedule: "before60",
-    requires: { minHouseholdSize: 2 },
+    requires: { hasChildren: true },
   },
   {
     id: "pet-registration",
@@ -174,6 +174,18 @@ export const procedures: Procedure[] = [
     municipalityConfirmationRequired: true,
     schedule: "before90",
     requires: { hasPets: true },
+  },
+  {
+    id: "vehicle-arrangements",
+    category: "household",
+    title: { en: "Review vehicle arrangements", ja: "車両に関する手続きを確認する" },
+    appliesTo: ["sameMunicipality", "betweenMunicipalities", "leavingTemporary", "leavingPermanent"],
+    timing: { en: "Start before the move; registration, parking, insurance, sale, or export steps vary by vehicle and destination.", ja: "引っ越し前に開始。登録、駐車場、保険、売却、輸出の手続きは車両と行き先によって異なります。" },
+    action: { en: "Check which address-change, registration, insurance, sale, or export steps apply to your car, motorcycle, or bicycle.", ja: "自動車、バイク、自転車に必要な住所変更、登録、保険、売却、輸出の手続きを確認します。" },
+    schedule: "before30",
+    requires: { hasVehicle: true },
+    source: { label: "Japan Moving Procedures Reference", url: "#vehicle-confirmation" },
+    municipalityConfirmationRequired: true,
   },
   {
     id: "residence-card-departure",
@@ -227,6 +239,8 @@ export const procedures: Procedure[] = [
 export function proceduresForProfile(profile: MoveProfile) {
   return procedures.filter((procedure) => procedure.appliesTo.includes(profile.scenario)
     && (!procedure.requires?.hasPets || profile.hasPets)
-    && (!procedure.requires?.minHouseholdSize || profile.householdSize >= procedure.requires.minHouseholdSize)
-    && (!procedure.requires?.visaStatuses || procedure.requires.visaStatuses.includes(profile.visaStatus)));
+    && (!procedure.requires?.hasChildren || profile.hasChildren)
+    && (!procedure.requires?.hasVehicle || profile.hasVehicle)
+    && (!procedure.requires?.visaStatuses || procedure.requires.visaStatuses.includes(profile.visaStatus))
+    && (!procedure.requires?.excludeVisaStatuses || !procedure.requires.excludeVisaStatuses.includes(profile.visaStatus)));
 }
