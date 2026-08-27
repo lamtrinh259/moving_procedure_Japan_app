@@ -63,16 +63,18 @@ const copy = {
   },
 } as const;
 
-export function OnboardingForm({ language, onGenerate }: { language: Language; onGenerate: (profile: MoveProfile) => void }) {
+export function OnboardingForm({ language, onGenerate }: { language: Language; onGenerate: (profile: MoveProfile) => Promise<void> | void }) {
   const [moveType, setMoveType] = useState<MoveType | "">("");
   const [submitted, setSubmitted] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const text = copy[language];
   const leavingJapan = moveType === "leavingTemporary" || moveType === "leavingPermanent";
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    onGenerate({
+    setIsGenerating(true);
+    await onGenerate({
       scenario: moveType as MoveType,
       moveDate: String(data.get("moveDate")),
       currentMunicipality: String(data.get("currentMunicipality")),
@@ -82,6 +84,7 @@ export function OnboardingForm({ language, onGenerate }: { language: Language; o
       hasPets: data.get("pets") === "yes",
       notes: String(data.get("notes") ?? ""),
     });
+    setIsGenerating(false);
     setSubmitted(true);
   }
 
@@ -115,7 +118,7 @@ export function OnboardingForm({ language, onGenerate }: { language: Language; o
           <label><span>{text.pets}</span><select name="pets" defaultValue="no" required><option value="no">{text.options.no}</option><option value="yes">{text.options.yes}</option></select></label>
         </div>
         <label className="notes"><span>{text.notes}</span><textarea name="notes" rows={3} placeholder={text.notesHint} /></label>
-        <button className="primary-action" type="submit">{text.submit} <span aria-hidden="true">→</span></button>
+        <button className="primary-action" type="submit" disabled={isGenerating}>{isGenerating ? "…" : text.submit} <span aria-hidden="true">→</span></button>
         {submitted && <p className="form-feedback" role="status">{text.submitted}</p>}
       </form>
     </section>
