@@ -10,7 +10,7 @@ export type ProcedureCategory =
   | "household";
 
 type LocalizedText = { en: string; ja: string };
-type ScheduleRule = "before90" | "before60" | "before30" | "before14" | "onMoveDate" | "after14";
+export type ScheduleRule = "before90" | "before60" | "before30" | "before14" | "onMoveDate" | "after14";
 
 export type Procedure = {
   id: string;
