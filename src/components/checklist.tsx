@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { MoveProfile } from "@/lib/move-profile";
-import { proceduresForScenario, type Procedure } from "@/lib/procedures";
+import { proceduresForProfile, type Procedure } from "@/lib/procedures";
 
 type Language = "en" | "ja";
 const labels = {
@@ -21,19 +21,30 @@ function datePlusDays(date: string, days: number) {
 }
 
 function scheduleLabel(item: Procedure, profile: MoveProfile, language: Language) {
-  const afterMove = new Set(["moving-in-notification", "address-change-notification", "residence-card-address"]);
-  if (afterMove.has(item.id)) {
-    const due = new Intl.DateTimeFormat(language === "ja" ? "ja-JP" : "en-GB", { dateStyle: "long" }).format(datePlusDays(profile.moveDate, 14));
-    return language === "ja" ? `期限：${due}` : `Due by ${due}`;
+  const formatter = new Intl.DateTimeFormat(language === "ja" ? "ja-JP" : "en-GB", { dateStyle: "long" });
+  const date = (days: number) => formatter.format(datePlusDays(profile.moveDate, days));
+  if (item.id === "moving-out-notification") return language === "ja" ? `${date(-14)}頃から自治体に確認` : `Check with your municipality from around ${date(-14)}`;
+  if (item.id === "national-health-insurance" && (profile.scenario === "sameMunicipality" || profile.scenario === "betweenMunicipalities")) return language === "ja" ? `住所変更時（${date(14)}まで）` : `At your address notification (by ${date(14)})`;
+  switch (item.schedule) {
+    case "before90": return language === "ja" ? `${date(-90)}頃から開始` : `Start around ${date(-90)}`;
+    case "before60": return language === "ja" ? `${date(-60)}頃から開始` : `Start around ${date(-60)}`;
+    case "before30": return language === "ja" ? `${date(-30)}頃までに` : `By around ${date(-30)}`;
+    case "before14": return language === "ja" ? `${date(-14)}頃までに` : `By around ${date(-14)}`;
+    case "onMoveDate": return language === "ja" ? `予定日：${date(0)}` : `Planned date: ${date(0)}`;
+    case "after14": return language === "ja" ? `期限：${date(14)}` : `Due by ${date(14)}`;
+    case "after2Years": {
+      const deadline = new Date(`${profile.moveDate}T12:00:00`);
+      deadline.setFullYear(deadline.getFullYear() + 2);
+      return language === "ja" ? `確認期限：${formatter.format(deadline)}` : `Check deadline: ${formatter.format(deadline)}`;
+    }
+    default: return language === "ja" ? `${dateLabel(profile.moveDate, language)}までに確認` : `Confirm before ${dateLabel(profile.moveDate, language)}`;
   }
-  const moveDate = dateLabel(profile.moveDate, language);
-  return language === "ja" ? `${moveDate}までに確認` : `Confirm before ${moveDate}`;
 }
 
 export function Checklist({ language, profile, procedureIds }: { language: Language; profile: MoveProfile; procedureIds?: string[] }) {
   const [completed, setCompleted] = useState<string[]>([]);
   const text = labels[language];
-  const baseItems = proceduresForScenario(profile.scenario);
+  const baseItems = proceduresForProfile(profile);
   const items = procedureIds
     ? procedureIds.map((id) => baseItems.find((item) => item.id === id)).filter((item): item is Procedure => Boolean(item))
     : baseItems;
