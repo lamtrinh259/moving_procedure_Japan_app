@@ -14,10 +14,13 @@ function dateLabel(date: string, language: Language) {
   return new Intl.DateTimeFormat(language === "ja" ? "ja-JP" : "en-GB", { dateStyle: "long" }).format(new Date(`${date}T12:00:00`));
 }
 
-export function Checklist({ language, profile }: { language: Language; profile: MoveProfile }) {
+export function Checklist({ language, profile, procedureIds }: { language: Language; profile: MoveProfile; procedureIds?: string[] }) {
   const [completed, setCompleted] = useState<string[]>([]);
   const text = labels[language];
-  const items = proceduresForScenario(profile.scenario);
+  const baseItems = proceduresForScenario(profile.scenario);
+  const items = procedureIds
+    ? procedureIds.map((id) => baseItems.find((item) => item.id === id)).filter((item): item is Procedure => Boolean(item))
+    : baseItems;
   const progress = Math.round((completed.length / items.length) * 100);
   return <section className="checklist" id="your-checklist" aria-labelledby="checklist-title">
     <div className="checklist-heading"><div><p className="eyebrow">{text.eyebrow}</p><h2 id="checklist-title">{text.title}</h2><p>{dateLabel(profile.moveDate, language)} · {profile.currentMunicipality} → {profile.destination}</p></div><div className="progress" aria-label={`${progress}% ${text.complete}`}><strong>{progress}%</strong><span>{completed.length}/{items.length} {text.tasks}</span></div></div>

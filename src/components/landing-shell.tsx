@@ -4,6 +4,7 @@ import { useState } from "react";
 import { OnboardingForm } from "@/components/onboarding-form";
 import { Checklist } from "@/components/checklist";
 import type { MoveProfile } from "@/lib/move-profile";
+import type { ChecklistRecommendation } from "@/lib/checklist-recommendation";
 
 type Language = "en" | "ja";
 
@@ -55,7 +56,16 @@ const copy = {
 export function LandingShell() {
   const [language, setLanguage] = useState<Language>("en");
   const [profile, setProfile] = useState<MoveProfile | null>(null);
+  const [recommendation, setRecommendation] = useState<ChecklistRecommendation | null>(null);
   const text = copy[language];
+
+  async function generateChecklist(nextProfile: MoveProfile) {
+    const response = await fetch("/api/checklist", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(nextProfile) });
+    const result = await response.json() as ChecklistRecommendation;
+    setRecommendation(result);
+    setProfile(nextProfile);
+    requestAnimationFrame(() => document.getElementById("your-checklist")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }
 
   return (
     <main className="site-shell" lang={language}>
@@ -110,8 +120,8 @@ export function LandingShell() {
         </div>
       </section>
 
-      <OnboardingForm language={language} onGenerate={setProfile} />
-      {profile && <Checklist language={language} profile={profile} />}
+      <OnboardingForm language={language} onGenerate={generateChecklist} />
+      {profile && <Checklist language={language} profile={profile} procedureIds={recommendation?.procedureIds} />}
 
       <footer>{text.sourceNote}</footer>
     </main>
