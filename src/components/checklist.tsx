@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { scheduleOffsetDays, sortProceduresBySchedule } from "@/lib/checklist-schedule";
 import type { MoveProfile } from "@/lib/move-profile";
 import { proceduresForProfile, type Procedure } from "@/lib/procedures";
 
@@ -23,15 +24,16 @@ function datePlusDays(date: string, days: number) {
 function scheduleLabel(item: Procedure, profile: MoveProfile, language: Language) {
   const formatter = new Intl.DateTimeFormat(language === "ja" ? "ja-JP" : "en-GB", { dateStyle: "long" });
   const date = (days: number) => formatter.format(datePlusDays(profile.moveDate, days));
-  if (item.id === "moving-out-notification") return language === "ja" ? `${date(-14)}頃から自治体に確認` : `Check with your municipality from around ${date(-14)}`;
-  if (item.id === "national-health-insurance" && (profile.scenario === "sameMunicipality" || profile.scenario === "betweenMunicipalities")) return language === "ja" ? `住所変更時（${date(14)}まで）` : `At your address notification (by ${date(14)})`;
+  const scheduledDate = date(scheduleOffsetDays(item, profile));
+  if (item.id === "moving-out-notification") return language === "ja" ? `${scheduledDate}頃から自治体に確認` : `Check with your municipality from around ${scheduledDate}`;
+  if (item.id === "national-health-insurance" && (profile.scenario === "sameMunicipality" || profile.scenario === "betweenMunicipalities")) return language === "ja" ? `住所変更時（${scheduledDate}まで）` : `At your address notification (by ${scheduledDate})`;
   switch (item.schedule) {
-    case "before90": return language === "ja" ? `${date(-90)}頃から開始` : `Start around ${date(-90)}`;
-    case "before60": return language === "ja" ? `${date(-60)}頃から開始` : `Start around ${date(-60)}`;
-    case "before30": return language === "ja" ? `${date(-30)}頃までに` : `By around ${date(-30)}`;
-    case "before14": return language === "ja" ? `${date(-14)}頃までに` : `By around ${date(-14)}`;
-    case "onMoveDate": return language === "ja" ? `予定日：${date(0)}` : `Planned date: ${date(0)}`;
-    case "after14": return language === "ja" ? `期限：${date(14)}` : `Due by ${date(14)}`;
+    case "before90": return language === "ja" ? `${scheduledDate}頃から開始` : `Start around ${scheduledDate}`;
+    case "before60": return language === "ja" ? `${scheduledDate}頃から開始` : `Start around ${scheduledDate}`;
+    case "before30": return language === "ja" ? `${scheduledDate}頃までに` : `By around ${scheduledDate}`;
+    case "before14": return language === "ja" ? `${scheduledDate}頃までに` : `By around ${scheduledDate}`;
+    case "onMoveDate": return language === "ja" ? `予定日：${scheduledDate}` : `Planned date: ${scheduledDate}`;
+    case "after14": return language === "ja" ? `期限：${scheduledDate}` : `Due by ${scheduledDate}`;
     default: return language === "ja" ? `${dateLabel(profile.moveDate, language)}までに確認` : `Confirm before ${dateLabel(profile.moveDate, language)}`;
   }
 }
@@ -40,9 +42,10 @@ export function Checklist({ language, profile, procedureIds }: { language: Langu
   const [completed, setCompleted] = useState<string[]>([]);
   const text = labels[language];
   const baseItems = proceduresForProfile(profile);
-  const items = procedureIds
+  const rankedItems = procedureIds
     ? procedureIds.map((id) => baseItems.find((item) => item.id === id)).filter((item): item is Procedure => Boolean(item))
     : baseItems;
+  const items = sortProceduresBySchedule(rankedItems, profile);
   const progress = Math.round((completed.length / items.length) * 100);
   return <section className="checklist" id="your-checklist" aria-labelledby="checklist-title">
     <div className="checklist-heading"><div><p className="eyebrow">{text.eyebrow}</p><h2 id="checklist-title">{text.title}</h2><p>{dateLabel(profile.moveDate, language)} · {profile.currentMunicipality} → {profile.destination}</p></div><div className="progress" aria-label={`${progress}% ${text.complete}`}><strong>{progress}%</strong><span>{completed.length}/{items.length} {text.tasks}</span></div></div>
