@@ -2,7 +2,8 @@ import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import type { ChecklistRecommendation } from "@/lib/checklist-recommendation";
 import type { MoveProfile } from "@/lib/move-profile";
-import { proceduresForScenario, type MoveScenario } from "@/lib/procedures";
+import { proceduresForProfile } from "@/lib/procedures";
+import type { MoveScenario } from "@/lib/move-profile";
 
 const scenarios: MoveScenario[] = ["sameMunicipality", "betweenMunicipalities", "leavingTemporary", "leavingPermanent"];
 
@@ -20,14 +21,14 @@ function validProfile(value: unknown): value is MoveProfile {
 }
 
 function fallback(profile: MoveProfile): ChecklistRecommendation {
-  return { procedureIds: proceduresForScenario(profile.scenario).map((item) => item.id), highlights: [], mode: "fallback" };
+  return { procedureIds: proceduresForProfile(profile).map((item) => item.id), highlights: [], mode: "fallback" };
 }
 
 export async function POST(request: Request) {
   const payload: unknown = await request.json().catch(() => null);
   if (!validProfile(payload)) return NextResponse.json({ error: "Invalid move profile." }, { status: 400 });
 
-  const knownProcedures = proceduresForScenario(payload.scenario);
+  const knownProcedures = proceduresForProfile(payload);
   if (!process.env.OPENAI_API_KEY) return NextResponse.json(fallback(payload));
 
   try {

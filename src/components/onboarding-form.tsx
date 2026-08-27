@@ -22,6 +22,7 @@ const copy = {
     notes: "Anything else we should know? (optional)",
     notesHint: "For example: employer-provided housing, a vehicle, or a child starting school.",
     submit: "Create my checklist",
+    generating: "Preparing your checklist",
     submitted: "Your personalised checklist is ready below.",
     options: {
       select: "Select an option",
@@ -49,6 +50,7 @@ const copy = {
     notes: "ほかに伝えておきたいこと（任意）",
     notesHint: "例：社宅、車の所有、お子さまの転校予定など。",
     submit: "チェックリストを作る",
+    generating: "チェックリストを準備中",
     submitted: "あなた専用のチェックリストを下に作成しました。",
     options: {
       select: "選択してください",
@@ -118,7 +120,7 @@ export function OnboardingForm({ language, onGenerate }: { language: Language; o
           <label><span>{text.pets}</span><select name="pets" defaultValue="no" required><option value="no">{text.options.no}</option><option value="yes">{text.options.yes}</option></select></label>
         </div>
         <label className="notes"><span>{text.notes}</span><textarea name="notes" rows={3} placeholder={text.notesHint} /></label>
-        <button className="primary-action" type="submit" disabled={isGenerating}>{isGenerating ? "…" : text.submit} <span aria-hidden="true">→</span></button>
+        <button className="primary-action" type="submit" disabled={isGenerating}>{isGenerating ? text.generating : text.submit} <span aria-hidden="true">→</span></button>
         {submitted && <p className="form-feedback" role="status">{text.submitted}</p>}
       </form>
     </section>

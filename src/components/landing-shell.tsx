@@ -29,6 +29,7 @@ const copy = {
     sampleDetails: "City or ward office · Bring your residence card",
     sampleDeadline: "Due within 14 days",
     sourceNote: "Guidance is based on reviewed official sources. Always confirm requirements with your municipality.",
+    fallbackNotice: "Using standard reviewed recommendations. AI prioritisation is unavailable right now.",
   },
   ja: {
     language: "English",
@@ -50,6 +51,7 @@ const copy = {
     sampleDetails: "市区町村役場 · 在留カードを持参",
     sampleDeadline: "転入後14日以内",
     sourceNote: "案内は確認済みの公的情報をもとにしています。詳細はお住まいの自治体にご確認ください。",
+    fallbackNotice: "標準の確認済み案内を表示しています。現在、AIによる優先順位付けは利用できません。",
   },
 } as const;
 
@@ -57,12 +59,20 @@ export function LandingShell() {
   const [language, setLanguage] = useState<Language>("en");
   const [profile, setProfile] = useState<MoveProfile | null>(null);
   const [recommendation, setRecommendation] = useState<ChecklistRecommendation | null>(null);
+  const [usedFallback, setUsedFallback] = useState(false);
   const text = copy[language];
 
   async function generateChecklist(nextProfile: MoveProfile) {
-    const response = await fetch("/api/checklist", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(nextProfile) });
-    const result = await response.json() as ChecklistRecommendation;
-    setRecommendation(result);
+    try {
+      const response = await fetch("/api/checklist", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(nextProfile) });
+      if (!response.ok) throw new Error("Checklist request failed");
+      const result = await response.json() as ChecklistRecommendation;
+      setRecommendation(result);
+      setUsedFallback(result.mode === "fallback");
+    } catch {
+      setRecommendation(null);
+      setUsedFallback(true);
+    }
     setProfile(nextProfile);
     requestAnimationFrame(() => document.getElementById("your-checklist")?.scrollIntoView({ behavior: "smooth", block: "start" }));
   }
@@ -121,6 +131,7 @@ export function LandingShell() {
       </section>
 
       <OnboardingForm language={language} onGenerate={generateChecklist} />
+      {usedFallback && <p className="fallback-notice" role="status">{text.fallbackNotice}</p>}
       {profile && <Checklist language={language} profile={profile} procedureIds={recommendation?.procedureIds} />}
 
       <footer>{text.sourceNote}</footer>

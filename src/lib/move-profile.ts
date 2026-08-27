@@ -1,4 +1,4 @@
-import type { MoveScenario } from "@/lib/procedures";
+export type MoveScenario = "sameMunicipality" | "betweenMunicipalities" | "leavingTemporary" | "leavingPermanent";
 
 export type MoveProfile = {
   scenario: MoveScenario;
