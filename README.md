@@ -2,6 +2,10 @@
 
 A bilingual (English/Japanese) web app that helps people moving in, within, or out of Japan understand their required procedures, deadlines, and documents.
 
+## Live demo
+
+[Open the Japan Moving Assistant](https://moving-procedure-japan-app.vercel.app/)
+
 ## Stack
 
 - Next.js App Router and React
