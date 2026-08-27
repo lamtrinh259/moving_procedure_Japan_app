@@ -8,5 +8,7 @@ export type MoveProfile = {
   visaStatus: string;
   householdSize: number;
   hasPets: boolean;
+  hasChildren: boolean;
+  hasVehicle: boolean;
   notes: string;
 };

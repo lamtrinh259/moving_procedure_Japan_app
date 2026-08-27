@@ -19,6 +19,8 @@ const copy = {
     visaStatus: "Residence status",
     household: "How many people are moving, including you?",
     pets: "Are any pets moving with you?",
+    children: "Are any children moving with you?",
+    vehicle: "Is a car, motorcycle, or bicycle affected by this move?",
     notes: "Anything else we should know? (optional)",
     notesHint: "For example: employer-provided housing, a vehicle, or a child starting school.",
     submit: "Create my checklist",
@@ -47,6 +49,8 @@ const copy = {
     visaStatus: "在留資格",
     household: "あなたを含め、何人で引っ越しますか？",
     pets: "ペットも一緒に引っ越しますか？",
+    children: "お子さまも一緒に引っ越しますか？",
+    vehicle: "車・バイク・自転車もこの引っ越しに関係しますか？",
     notes: "ほかに伝えておきたいこと（任意）",
     notesHint: "例：社宅、車の所有、お子さまの転校予定など。",
     submit: "チェックリストを作る",
@@ -84,6 +88,8 @@ export function OnboardingForm({ language, onGenerate }: { language: Language; o
       visaStatus: String(data.get("visaStatus")),
       householdSize: Number(data.get("householdSize")),
       hasPets: data.get("pets") === "yes",
+      hasChildren: data.get("children") === "yes",
+      hasVehicle: data.get("vehicle") === "yes",
       notes: String(data.get("notes") ?? ""),
     });
     setIsGenerating(false);
@@ -118,6 +124,8 @@ export function OnboardingForm({ language, onGenerate }: { language: Language; o
           <label><span>{text.visaStatus}</span><select name="visaStatus" defaultValue="" required><option value="" disabled>{text.options.select}</option>{text.options.visa.map((visa) => <option key={visa} value={visa}>{visa}</option>)}</select></label>
           <label><span>{text.household}</span><select name="householdSize" defaultValue="1" required>{[1, 2, 3, 4, 5, 6].map((count) => <option key={count} value={count}>{count === 6 ? "6+" : count}</option>)}</select></label>
           <label><span>{text.pets}</span><select name="pets" defaultValue="no" required><option value="no">{text.options.no}</option><option value="yes">{text.options.yes}</option></select></label>
+          <label><span>{text.children}</span><select name="children" defaultValue="no" required><option value="no">{text.options.no}</option><option value="yes">{text.options.yes}</option></select></label>
+          <label><span>{text.vehicle}</span><select name="vehicle" defaultValue="no" required><option value="no">{text.options.no}</option><option value="yes">{text.options.yes}</option></select></label>
         </div>
         <label className="notes"><span>{text.notes}</span><textarea name="notes" rows={3} placeholder={text.notesHint} /></label>
         <button className="primary-action" type="submit" disabled={isGenerating}>{isGenerating ? text.generating : text.submit} <span aria-hidden="true">→</span></button>

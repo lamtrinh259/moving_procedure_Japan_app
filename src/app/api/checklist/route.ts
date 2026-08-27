@@ -17,6 +17,8 @@ function validProfile(value: unknown): value is MoveProfile {
     && typeof profile.visaStatus === "string"
     && typeof profile.householdSize === "number"
     && typeof profile.hasPets === "boolean"
+    && typeof profile.hasChildren === "boolean"
+    && typeof profile.hasVehicle === "boolean"
     && typeof profile.notes === "string";
 }
 
