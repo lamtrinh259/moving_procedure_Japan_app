@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { OnboardingForm } from "@/components/onboarding-form";
 
 type Language = "en" | "ja";
 
@@ -76,7 +77,7 @@ export function LandingShell() {
           <p className="eyebrow">{text.eyebrow}</p>
           <h1>{text.title}</h1>
           <p className="hero-description">{text.description}</p>
-          <a className="primary-action" href="#how-it-works">{text.start} <span aria-hidden="true">→</span></a>
+          <a className="primary-action" href="#build-checklist">{text.start} <span aria-hidden="true">→</span></a>
           <p className="reassurance">{text.reassurance}</p>
         </div>
 
@@ -105,6 +106,8 @@ export function LandingShell() {
           ))}
         </div>
       </section>
+
+      <OnboardingForm language={language} />
 
       <footer>{text.sourceNote}</footer>
     </main>
